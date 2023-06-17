@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:keepScreenOn="true"
+    android:orientation="horizontal"
+    tools:context=".MainActivity">
+<!--    style="@android:style/TextAppearance.DeviceDefault.Medium">-->
+
+    <RelativeLayout
+        android:id="@+id/nowWeatherLayout"
+        android:layout_marginTop="@dimen/marginTopSize"
+        android:layout_marginLeft="@dimen/marginSideSize"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_alignParentLeft="true">
+
+        <TextView
+            android:id="@+id/todayTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Now"
+            android:textColor="@color/red"
+            android:textSize="@dimen/textSizeRed"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"/>
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_marginTop="@dimen/marginSideSize"
+            android:layout_width="@dimen/textSizeTime"
+            android:layout_height="@dimen/textSizeTime"
+            android:contentDescription="@string/weathertype"
+            android:src="@drawable/unknown"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/todayTextView"/>
+
+        <LinearLayout
+            android:id="@+id/tempRowLayout"
+            android:layout_marginTop="@dimen/marginSideSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/imageView">
+
+            <TextView
+                android:id="@+id/tempTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XXX"
+                android:textColor="@color/purple_700"
+                android:textSize="@dimen/textSizeTemp"/>
+
+            <TextView
+                android:id="@+id/celsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/celsium"
+                android:textColor="@color/purple_700"
+                android:textSize="@dimen/textSizeTemp"/>
+
+        </LinearLayout>
+
+        <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/buttonHeight"
+        android:layout_marginTop="@dimen/marginSideSize"
+        android:text="@string/update"
+        android:layout_below="@id/tempRowLayout"
+        android:layout_centerHorizontal="true"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/dateLayout"
+        android:layout_marginTop="@dimen/marginTopSize"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_centerHorizontal="true">
+        <TextView
+            android:id="@+id/dateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="05-Jan-2022"
+            android:textColor="@color/purple_700"
+            android:layout_centerHorizontal="true"
+            android:textSize="@dimen/textSizeTemp"/>
+
+        <TextView
+            android:id="@+id/weekDayTextView"
+            android:layout_below="@id/dateTextView"
+            android:layout_marginTop="20.dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sunday"
+            android:textColor="@color/purple_700"
+            android:layout_centerHorizontal="true"
+            android:textSize="@dimen/textSizeTemp"/>
+        <LinearLayout
+            android:id="@+id/powerLayout"
+            android:layout_marginTop="5.dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/weekDayTextView">
+    <ImageView
+        android:id="@+id/powerImageView"
+        android:layout_width="@dimen/_50sdp"
+        android:layout_height="@dimen/_50sdp"
+        android:padding="@dimen/_5sdp"
+        android:src="@drawable/baseline_power_50" />
+            <TextView
+                android:id="@+id/batteryPercentageTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/purple_700"
+                android:textSize="@dimen/_50sdp"/>
+</LinearLayout>
+    <TextView
+        android:id="@+id/timeTextView"
+        android:layout_below="@+id/powerLayout"
+        android:layout_marginTop="2.dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00 : 00"
+        android:textAllCaps="false"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@color/purple_700"
+        android:textSize="@dimen/textSizeTime"
+        android:layout_centerHorizontal="true"
+        android:textStyle="bold"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/forecastLayout"
+        android:layout_marginTop="@dimen/marginTopSize"
+        android:layout_marginRight="@dimen/marginSideSize"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_alignParentRight="true">
+
+        <TextView
+            android:id="@+id/forecastTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="In 12 hours"
+            android:textColor="@color/red"
+            android:textSize="@dimen/textSizeRed"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_marginTop="@dimen/marginSideSize"
+            android:layout_width="@dimen/textSizeTime"
+            android:layout_height="@dimen/textSizeTime"
+            android:src="@drawable/unknown"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/forecastTextView" />
+
+        <LinearLayout
+            android:id="@+id/tempRowLayout2"
+            android:layout_marginTop="@dimen/marginSideSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/imageView2">
+
+        <TextView
+            android:id="@+id/temp2TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="XXX"
+            android:textColor="@color/purple_700"
+            android:textSize="@dimen/textSizeTemp" />
+
+        <TextView
+            android:id="@+id/cels2TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="C"
+            android:textColor="@color/purple_700"
+            android:textSize="@dimen/textSizeTemp"
+            android:visibility="visible"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/buttonsRowLayout"
+            android:layout_marginTop="@dimen/marginSideSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/tempRowLayout2">
+
+            <Button
+                android:id="@+id/backwardButton"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/buttonHeight"
+                android:padding="@dimen/buttonPaddingSize"
+                android:text="BWD"/>
+
+            <Button
+                android:id="@+id/forwardButton"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/buttonHeight"
+                android:padding="@dimen/buttonPaddingSize"
+                android:layout_marginLeft="@dimen/_4sdp"
+                android:text="FWD"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

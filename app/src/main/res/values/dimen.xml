@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="marginTopSize">@dimen/_50sdp</dimen>
+    <dimen name="marginSideSize">@dimen/_30sdp</dimen>
+    <dimen name="textSizeRed">@dimen/_28sdp</dimen>
+    <dimen name="textSizeTemp">@dimen/_60sdp</dimen>
+    <dimen name="marginSideSizeDate">@dimen/_10sdp</dimen>
+    <dimen name="textSizeTime">@dimen/_100sdp</dimen>
+    <dimen name="buttonPaddingSize">@dimen/_4sdp</dimen>
+    <dimen name="buttonHeight">@dimen/_55sdp</dimen>
+    <dimen name="imageSize">@dimen/_96sdp</dimen>
+</resources>
