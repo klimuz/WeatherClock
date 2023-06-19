@@ -101,30 +101,20 @@
             android:textColor="@color/purple_700"
             android:layout_centerHorizontal="true"
             android:textSize="@dimen/textSizeTemp"/>
-        <LinearLayout
-            android:id="@+id/powerLayout"
-            android:layout_marginTop="5.dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@id/weekDayTextView">
-    <ImageView
-        android:id="@+id/powerImageView"
-        android:layout_width="@dimen/_50sdp"
-        android:layout_height="@dimen/_50sdp"
-        android:padding="@dimen/_5sdp"
-        android:src="@drawable/baseline_power_50" />
+
+
             <TextView
-                android:id="@+id/batteryPercentageTextView"
+                android:id="@+id/currencyTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/purple_700"
-                android:textSize="@dimen/_50sdp"/>
-</LinearLayout>
+                android:textSize="70sp"
+                android:layout_below="@id/weekDayTextView"
+                android:layout_centerHorizontal="true"/>
+
     <TextView
         android:id="@+id/timeTextView"
-        android:layout_below="@+id/powerLayout"
+        android:layout_below="@+id/currencyTextView"
         android:layout_marginTop="2.dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

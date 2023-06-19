@@ -33,6 +33,7 @@ public class Parser {
             result = "ovc_m_ra";
         } else if (imageQuiery.contains("ovc ")){ //пасмурно
             result = "ovc";
+
         } else if (imageQuiery.contains("ovc-ra-sn ")){ //дождь со снегом
             result = "ovc_ra_sn";
         } else if (imageQuiery.contains("ovc-ra ")){ //дождь
@@ -45,13 +46,15 @@ public class Parser {
             result = "sunset";
         } else if (imageQuiery.contains("sunrise ")){ //восход
             result = "sunrise";
+        }else {
+            result = "ovc";
         }
         return result;
     }
     public static ArrayList mainMethod() throws IOException {
         String tempCurr = "";
-        String imgCurr = "";
-        String imageCode = "";
+        String imgCurr = "ovc";
+        String imageCode = "ovc";
         ArrayList<String> hourlyInfo = new ArrayList();
         try {
             Document page = getPage();

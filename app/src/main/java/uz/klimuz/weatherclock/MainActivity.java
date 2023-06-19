@@ -1,10 +1,8 @@
 package uz.klimuz.weatherclock;
 
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.os.BatteryManager;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -30,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private Button backwardButton;
     private Button forwardButton;
     private TextView forecastTextView;
+    private TextView celsTextView;
+    private TextView cels2TextView;
 
     private int month;
     private int weekDay;
@@ -38,8 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private int counterTime;
     private int counterForecast = 3;
 
-    public static ImageView powerImageView;
-    public static TextView batteryPercentageTextView;
+    private TextView currencyTextView;
 
 
 /*weatherInfo
@@ -53,6 +52,11 @@ public class MainActivity extends AppCompatActivity {
      07-image 3hour;
      08-etc; */
     private ArrayList<String> weatherInfo = new ArrayList();
+    private String currencyInfo = "";
+
+//    Resources resources = getResources();
+    int warmColor;
+    int coldColor;
 
 
 
@@ -63,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+        Resources resources = getResources();
+        warmColor = resources.getColor(R.color.red);
+        coldColor = resources.getColor(R.color.purple_700);
 
         dateTextVew = findViewById(R.id.dateTextView);
         weekDayTextVew = findViewById(R.id.weekDayTextView);
@@ -75,9 +82,10 @@ public class MainActivity extends AppCompatActivity {
         forwardButton = findViewById(R.id.forwardButton);
         forecastTextView = findViewById(R.id.forecastTextView);
         button = findViewById(R.id.button);
+        celsTextView = findViewById(R.id.celsTextView);
+        cels2TextView = findViewById(R.id.cels2TextView);
 
-        powerImageView = findViewById(R.id.powerImageView);
-        batteryPercentageTextView = findViewById(R.id.batteryPercentageTextView);
+        currencyTextView = findViewById(R.id.currencyTextView);
 
         timeUpdate();
         updateWeather();
@@ -121,7 +129,16 @@ public class MainActivity extends AppCompatActivity {
     private void drawForecast(){
         if (weatherInfo.size() > counterForecast + 3) {
             forecastTextView.setText("In " + counterForecast + " hours");
-            temp2TextView.setText(weatherInfo.get(counterForecast * 2));
+            String temp2 = weatherInfo.get(counterForecast * 2);
+            String temp2Substring = temp2.substring(1, 3);
+            if (Integer.parseInt(temp2Substring) > 25){
+                temp2TextView.setTextColor(warmColor);
+                cels2TextView.setTextColor(warmColor);
+            }else {
+                temp2TextView.setTextColor(coldColor);
+                cels2TextView.setTextColor(coldColor);
+            }
+            temp2TextView.setText(temp2);
             imageView2 = mapImage(imageView2, weatherInfo.get(counterForecast * 2 + 1));
 
         }
@@ -182,13 +199,16 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             Parser parser = new Parser();
                             weatherInfo = parser.mainMethod();
+                            CurrencyParser currencyParser = new CurrencyParser();
+                            currencyInfo = currencyParser.findOutCourse();
 
-                            int index = 0;
-                            for (String string : weatherInfo){
-                                Log.i("arrayMain:", index + " " + string);
-                                index ++;
 
-                            }
+//                            int index = 0;
+//                            for (String string : weatherInfo){
+//                                Log.i("arrayMain:", index + " " + string);
+//                                index ++;
+//
+//                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -197,7 +217,16 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 if (weatherInfo.size() > 0) {
                                     tempTextView.setText(weatherInfo.get(0));
+                                    String currentTempModule = weatherInfo.get(0).substring(1);
+                                    if (Integer.parseInt(currentTempModule) > 25){
+                                        tempTextView.setTextColor(warmColor);
+                                        celsTextView.setTextColor(warmColor);
+                                    }else {
+                                        tempTextView.setTextColor(coldColor);
+                                        celsTextView.setTextColor(coldColor);
+                                    }
                                     imageView = mapImage(imageView, weatherInfo.get(1));
+                                    currencyTextView.setText(currencyInfo);
                                     drawForecast();
 
                                 }else return;
@@ -222,9 +251,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Calendar calendar = Calendar.getInstance();
-                       // PowerConnectionReceiver powerConnectionReceiver = new  PowerConnectionReceiver();
 
-                     //   powerConnectionReceiver.onReceive(Context, new Intent());
                         int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
                         String dayOfMonthString = "";
                         if (dayOfMonth < 10){
@@ -273,6 +300,7 @@ public class MainActivity extends AppCompatActivity {
                                 monthString = "Dec";
                                 break;
                         }
+
                         dateTextVew.setText(dayOfMonthString + "-" + monthString
                                 + "-" + calendar.get(Calendar.YEAR));
 
@@ -302,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                         }
                         weekDayTextVew.setText(weekDayString);
+
 
                         hours = calendar.get(Calendar.HOUR_OF_DAY);
                         String hoursString = "";
