@@ -197,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateWeather() {
         counterTime = 0;
+
         final Handler weatherHandler = new Handler();
         new Thread(new Runnable() {
                     @Override
@@ -231,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
                                     imageView = mapImage(imageView, weatherInfo.get(1));
                                     currencyTextView.setText(currencyInfo);
                                     drawForecast();
-                                }else return;
+                                }
                             }
                         });
                     }
@@ -330,8 +331,6 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                         }
                         weekDayTextVew.setText(weekDayString);
-
-
                         hours = calendar.get(Calendar.HOUR_OF_DAY);
                         String hoursString = "";
                         if (hours < 10){
@@ -358,5 +357,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
-
 }
