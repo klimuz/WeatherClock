@@ -1,7 +1,12 @@
 package uz.klimuz.weatherclock;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -29,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView forecastTextView;
     private TextView celsTextView;
     private TextView cels2TextView;
+    private TextView batteryLevelTextView;
+    private ImageView chargingImageView;
 
     private int month;
     private int weekDay;
@@ -53,12 +60,9 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> weatherInfo = new ArrayList();
     private String currencyInfo = "";
 
-
     int warmColor;
     int coldColor;
-
-
-
+    int greenColor;
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +70,11 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+
         Resources resources = getResources();
         warmColor = resources.getColor(R.color.red);
         coldColor = resources.getColor(R.color.purple_700);
+        greenColor = resources.getColor(R.color.green);
 
         dateTextVew = findViewById(R.id.dateTextView);
         weekDayTextVew = findViewById(R.id.weekDayTextView);
@@ -83,11 +89,14 @@ public class MainActivity extends AppCompatActivity {
         updateButton = findViewById(R.id.button);
         celsTextView = findViewById(R.id.celsTextView);
         cels2TextView = findViewById(R.id.cels2TextView);
+        batteryLevelTextView = findViewById(R.id.batteryLevelTextView);
+        chargingImageView = findViewById(R.id.chargingImageView);
 
         currencyTextView = findViewById(R.id.currencyTextView);
 
         timeUpdate();
         updateWeather();
+        registerBatteryLevelReceiver();
 
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,6 +133,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void registerBatteryLevelReceiver() {
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(battery_receiver, filter);
+    }
+
+    private BroadcastReceiver battery_receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean isPresent = intent.getBooleanExtra("present", false);
+            int plugged = intent.getIntExtra("plugged", -1);
+            int scale = intent.getIntExtra("scale", -1);
+            int rawlevel = intent.getIntExtra("level", -1);
+            int level = 0;
+
+            if (isPresent) {
+                if (rawlevel >= 0 && scale > 0) {
+                    level = (rawlevel * 100) / scale;
+                }
+
+                if (plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB){
+                    chargingImageView.setImageResource(R.drawable.battery_charging);
+                    batteryLevelTextView.setTextColor(greenColor);
+                }else {
+                    chargingImageView.setImageResource(R.drawable.battery_alert);
+                    batteryLevelTextView.setTextColor(warmColor);
+                }
+                String batteryLevelText = level + "%";
+                batteryLevelTextView.setText(batteryLevelText);
+            }
+
+        }
+    };
 
     private void drawForecast(){
         if (weatherInfo.size() > counterForecast + 3) {

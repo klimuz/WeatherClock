@@ -208,6 +208,30 @@
 
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/chargingImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/buttonsRowLayout"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="2dp"
+            app:srcCompat="@drawable/battery_alert"
+            android:rotation="90"/>
+
+        <TextView
+            android:id="@+id/batteryLevelTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/buttonsRowLayout"
+            android:layout_marginLeft="2dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="11dp"
+            android:layout_toEndOf="@+id/chargingImageView"
+            android:layout_toRightOf="@+id/chargingImageView"
+            android:text="100%"
+            android:textColor="#FF0000"
+            android:textSize="50sp" />
+
     </RelativeLayout>
 
 </RelativeLayout>
