@@ -2,7 +2,6 @@ package uz.klimuz.weatherclock;
 
 import android.annotation.SuppressLint;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -21,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView weekDayTextVew;
     private TextView timeTextVew;
     private TextView tempTextView;
-    private Button button;
+    private Button updateButton;
     private ImageView imageView;
     private ImageView imageView2;
     private TextView temp2TextView;
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> weatherInfo = new ArrayList();
     private String currencyInfo = "";
 
-//    Resources resources = getResources();
+
     int warmColor;
     int coldColor;
 
@@ -81,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         backwardButton = findViewById(R.id.backwardButton);
         forwardButton = findViewById(R.id.forwardButton);
         forecastTextView = findViewById(R.id.forecastTextView);
-        button = findViewById(R.id.button);
+        updateButton = findViewById(R.id.button);
         celsTextView = findViewById(R.id.celsTextView);
         cels2TextView = findViewById(R.id.cels2TextView);
 
@@ -90,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         timeUpdate();
         updateWeather();
 
-        button.setOnClickListener(new View.OnClickListener() {
+        updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 updateWeather();
@@ -128,24 +127,30 @@ public class MainActivity extends AppCompatActivity {
 
     private void drawForecast(){
         if (weatherInfo.size() > counterForecast + 3) {
-            forecastTextView.setText("In " + counterForecast + " hours");
+            String forecastText = "In " + counterForecast + " hours";
+            forecastTextView.setText(forecastText);
             String temp2 = weatherInfo.get(counterForecast * 2);
             String temp2Substring = temp2.substring(1, 3);
-            if (Integer.parseInt(temp2Substring) > 25){
-                temp2TextView.setTextColor(warmColor);
-                cels2TextView.setTextColor(warmColor);
-            }else {
-                temp2TextView.setTextColor(coldColor);
-                cels2TextView.setTextColor(coldColor);
+            StringBuilder digits = new StringBuilder();
+            for (int i = 0; i < temp2Substring.length(); i++){
+                char a = temp2Substring.charAt(i);
+                if (Character.isDigit(a)){
+                    digits.append(a);
+                }
+            }
+            if (digits.toString().length() > 0) {
+                if (Integer.parseInt(digits.toString()) > 25 && temp2.contains("+")) {
+                    temp2TextView.setTextColor(warmColor);
+                    cels2TextView.setTextColor(warmColor);
+                } else {
+                    temp2TextView.setTextColor(coldColor);
+                    cels2TextView.setTextColor(coldColor);
+                }
             }
             temp2TextView.setText(temp2);
             imageView2 = mapImage(imageView2, weatherInfo.get(counterForecast * 2 + 1));
-
         }
-
-        
     }
-
     private ImageView mapImage(ImageView imageViewToMap, String imageCode){
         switch (imageCode) {
             case "skc_n":
@@ -197,45 +202,41 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         try {
-                            Parser parser = new Parser();
-                            weatherInfo = parser.mainMethod();
-                            CurrencyParser currencyParser = new CurrencyParser();
-                            currencyInfo = currencyParser.findOutCourse();
-
-
-//                            int index = 0;
-//                            for (String string : weatherInfo){
-//                                Log.i("arrayMain:", index + " " + string);
-//                                index ++;
-//
-//                            }
+                            weatherInfo = WeatherParser.mainMethod();
+                            currencyInfo = CurrencyParser.findOutCourse();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        tempTextView.post(new Runnable() {
+                        weatherHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 if (weatherInfo.size() > 0) {
                                     tempTextView.setText(weatherInfo.get(0));
-                                    String currentTempModule = weatherInfo.get(0).substring(1);
-                                    if (Integer.parseInt(currentTempModule) > 25){
-                                        tempTextView.setTextColor(warmColor);
-                                        celsTextView.setTextColor(warmColor);
-                                    }else {
-                                        tempTextView.setTextColor(coldColor);
-                                        celsTextView.setTextColor(coldColor);
+                                    StringBuilder digits = new StringBuilder();
+                                    for (int i = 0; i < weatherInfo.get(0).length(); i++){
+                                        char a = weatherInfo.get(0).charAt(i);
+                                        if (Character.isDigit(a)){
+                                            digits.append(a);
+                                        }
+                                    }
+                                    if (digits.toString().length() > 0) {
+                                        if (Integer.parseInt(digits.toString()) > 25 && weatherInfo.get(0).contains("+")) {
+                                            tempTextView.setTextColor(warmColor);
+                                            celsTextView.setTextColor(warmColor);
+                                        } else {
+                                            tempTextView.setTextColor(coldColor);
+                                            celsTextView.setTextColor(coldColor);
+                                        }
                                     }
                                     imageView = mapImage(imageView, weatherInfo.get(1));
                                     currencyTextView.setText(currencyInfo);
                                     drawForecast();
-
                                 }else return;
                             }
                         });
                     }
                 }).start();
         }
-
         private void timeUpdate() {
         final Handler timeHandler = new Handler();
         new Thread(new Runnable() {
@@ -246,7 +247,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e){
                     e.printStackTrace();
                 }
-
                 timeHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -300,9 +300,9 @@ public class MainActivity extends AppCompatActivity {
                                 monthString = "Dec";
                                 break;
                         }
-
-                        dateTextVew.setText(dayOfMonthString + "-" + monthString
-                                + "-" + calendar.get(Calendar.YEAR));
+                        String dateText = dayOfMonthString + "-" + monthString
+                                + "-" + calendar.get(Calendar.YEAR);
+                        dateTextVew.setText(dateText);
 
                         weekDay = calendar.get(Calendar.DAY_OF_WEEK);
                         String weekDayString = "";
@@ -346,7 +346,8 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             minutesString = String.valueOf(minutes);
                         }
-                        timeTextVew.setText(hoursString + " : " + minutesString);
+                        String timeText = hoursString + " : " + minutesString;
+                        timeTextVew.setText(timeText);
                         counterTime++;
                         if (counterTime == 600){
                             updateWeather();
