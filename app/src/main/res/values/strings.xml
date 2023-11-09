@@ -3,4 +3,9 @@
     <string name="celsium">°С</string>
     <string name="weathertype">weatherType</string>
     <string name="update">UPDATE</string>
+    <string name="time_text">00 : 00</string>
+    <string name="now">Now</string>
+    <string name="in_12_hours">In 12 hours</string>
+    <string name="bwd">BWD</string>
+    <string name="fwd">FWD</string>
 </resources>

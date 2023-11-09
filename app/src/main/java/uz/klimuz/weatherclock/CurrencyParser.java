@@ -13,7 +13,12 @@ import java.net.URL;
 public class CurrencyParser{
 private static Document getPage() throws IOException {
         String url = "https://bank.uz/currency";
-        Document page = Jsoup.parse(new URL(url), 10000);
+        Document page = new Document(null);//Jsoup.parse(new URL(url), 10000);
+        try {
+                page = Jsoup.parse(new URL(url), 10000);
+        }catch (IOException e){
+                e.printStackTrace();
+        }
         return page;
 }
 public static String findOutCourse() throws  IOException {
@@ -38,6 +43,7 @@ public static String findOutCourse() throws  IOException {
         }catch (NullPointerException e){
                 e.printStackTrace();
         }
+
         return "1 USD = " + value + " UZS";
 }
 

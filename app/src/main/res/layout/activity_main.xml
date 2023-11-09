@@ -17,19 +17,21 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_alignParentLeft="true">
+        android:layout_alignParentLeft="true"
+        android:layout_marginStart="@dimen/marginSideSize"
+        android:layout_alignParentStart="true">
 
         <TextView
             android:id="@+id/todayTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Now"
+            android:text="@string/now"
             android:textColor="@color/red"
             android:textSize="@dimen/textSizeRed"
             android:layout_centerHorizontal="true"
             android:layout_alignParentTop="true"/>
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/weatherImageView"
             android:layout_marginTop="@dimen/marginSideSize"
             android:layout_width="@dimen/textSizeTime"
             android:layout_height="@dimen/textSizeTime"
@@ -45,13 +47,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_centerHorizontal="true"
-            android:layout_below="@id/imageView">
+            android:layout_below="@id/weatherImageView">
 
             <TextView
                 android:id="@+id/tempTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="XXX"
                 android:textColor="@color/purple_700"
                 android:textSize="@dimen/textSizeTemp"/>
 
@@ -86,7 +87,6 @@
             android:id="@+id/dateTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="05-Jan-2022"
             android:textColor="@color/purple_700"
             android:layout_centerHorizontal="true"
             android:textSize="@dimen/textSizeTemp"/>
@@ -97,7 +97,6 @@
             android:layout_marginTop="20.dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sunday"
             android:textColor="@color/purple_700"
             android:layout_centerHorizontal="true"
             android:textSize="@dimen/textSizeTemp"/>
@@ -118,7 +117,7 @@
         android:layout_marginTop="2.dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="00 : 00"
+        android:text="@string/time_text"
         android:textAllCaps="false"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@color/purple_700"
@@ -134,20 +133,21 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_alignParentRight="true">
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="@dimen/marginSideSize"
+        android:layout_alignParentEnd="true">
 
         <TextView
             android:id="@+id/forecastTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="In 12 hours"
             android:textColor="@color/red"
             android:textSize="@dimen/textSizeRed"
             android:layout_centerHorizontal="true"
             android:layout_alignParentTop="true" />
 
         <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/forecastImageView"
             android:layout_marginTop="@dimen/marginSideSize"
             android:layout_width="@dimen/textSizeTime"
             android:layout_height="@dimen/textSizeTime"
@@ -162,13 +162,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_centerHorizontal="true"
-            android:layout_below="@id/imageView2">
+            android:layout_below="@id/forecastImageView">
 
         <TextView
-            android:id="@+id/temp2TextView"
+            android:id="@+id/forecastTempTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="XXX"
             android:textColor="@color/purple_700"
             android:textSize="@dimen/textSizeTemp" />
 
@@ -176,7 +175,7 @@
             android:id="@+id/cels2TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="C"
+            android:text="@string/celsium"
             android:textColor="@color/purple_700"
             android:textSize="@dimen/textSizeTemp"
             android:visibility="visible"/>
@@ -196,7 +195,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/buttonHeight"
                 android:padding="@dimen/buttonPaddingSize"
-                android:text="BWD"/>
+                android:text="@string/bwd"/>
 
             <Button
                 android:id="@+id/forwardButton"
@@ -204,7 +203,8 @@
                 android:layout_height="@dimen/buttonHeight"
                 android:padding="@dimen/buttonPaddingSize"
                 android:layout_marginLeft="@dimen/_4sdp"
-                android:text="FWD"/>
+                android:text="@string/fwd"
+                android:layout_marginStart="@dimen/_4sdp" />
 
         </LinearLayout>
 
@@ -228,7 +228,6 @@
             android:layout_marginTop="11dp"
             android:layout_toEndOf="@+id/chargingImageView"
             android:layout_toRightOf="@+id/chargingImageView"
-            android:text="100%"
             android:textColor="#FF0000"
             android:textSize="50sp" />
 
