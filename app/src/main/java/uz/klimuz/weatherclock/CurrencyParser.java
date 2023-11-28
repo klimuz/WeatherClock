@@ -24,17 +24,17 @@ private static Document getPage() throws IOException {
 public static String findOutCourse() throws  IOException {
         String value = "";
         String uncutValue = "";
-        Element element;
+        Element element = null;
         try {
 
                         Document page = getPage();
 //                Log.i("page:", page.text());
 
-
-                       element = page.select("div[class=tabs-a]").first();
+                if (page != null) {
+                        element = page.select("div[class=tabs-a]").first();
 //                       Log.i("element:", element.text());
 
-
+                }
                 if (element != null){
                         uncutValue = element.text();
                         value = uncutValue.substring(4, 10);
@@ -43,7 +43,9 @@ public static String findOutCourse() throws  IOException {
         }catch (NullPointerException e){
                 e.printStackTrace();
         }
-
+        if (value.equals("")){
+                value = "many";
+        }
         return "1 USD = " + value + " UZS";
 }
 

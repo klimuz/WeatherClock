@@ -10,7 +10,6 @@ import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -28,12 +27,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
+    public static String forecastIconCode = "";
+    public static ArrayList<String> currentWeather = new ArrayList<>();
+    public static int warmColor;
+    public static int coldColor;
+    public static int greenColor;
+    private static String iconCode = "";
+    private final String weatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=Tashkent&appid=ccfc57acc1e76e2bb422580207a1a1ed&units=metric";
+    private final String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q=Tashkent&appid=ccfc57acc1e76e2bb422580207a1a1ed&units=metric";
     private TextView dateTextVew;
     private TextView weekDayTextVew;
     private TextView timeTextVew;
@@ -49,39 +59,55 @@ public class MainActivity extends AppCompatActivity {
     private TextView cels2TextView;
     private TextView batteryLevelTextView;
     private ImageView chargingImageView;
+    private final BroadcastReceiver battery_receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean isPresent = intent.getBooleanExtra("present", false);
+            int plugged = intent.getIntExtra("plugged", -1);
+            int scale = intent.getIntExtra("scale", -1);
+            int rawlevel = intent.getIntExtra("level", -1);
+            int level = 0;
+            if (isPresent) {
+                if (rawlevel >= 0 && scale > 0) {
+                    level = (rawlevel * 100) / scale;
+                }
+                if (plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB) {
+                    chargingImageView.setImageResource(R.drawable.battery_charging);
+                    batteryLevelTextView.setTextColor(greenColor);
+                } else {
+                    chargingImageView.setImageResource(R.drawable.battery_alert);
+                    batteryLevelTextView.setTextColor(warmColor);
+                }
+                String batteryLevelText = level + "%";
+                batteryLevelTextView.setText(batteryLevelText);
+            }
 
+        }
+    };
     private int month;
     private int weekDay;
     private int hours;
     private int minutes;
     private int counterTime;
     private int counterForecast = 3;
-
     private TextView currencyTextView;
-
-
-    /*weatherInfo
-         00-temp current;
-         01-image current;
-         02-temp 1hour;
-         03-image 1hour;
-         04-temp 2hour;
-         05-image 2hour;
-         06-temp 3hour;
-         07-image 3hour;
-         08-etc; */
     private ArrayList<ForecastHour> forecastsList = new ArrayList<>();
     private String currencyInfo = "";
-    private final String weatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=Tashkent&appid=ccfc57acc1e76e2bb422580207a1a1ed&units=metric";
-    private final String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q=Tashkent&appid=ccfc57acc1e76e2bb422580207a1a1ed&units=metric";
-    private static String iconCode = "";
-    public static String forecastIconCode = "";
 
-    public static ArrayList<String> currentWeather = new ArrayList<>();
+    public boolean isOnline() {
+        try {
+            int timeoutMs = 1500;
+            Socket sock = new Socket();
+            SocketAddress sockaddr = new InetSocketAddress("8.8.8.8", 53);
 
-    public static int warmColor;
-    public static int coldColor;
-    public static int greenColor;
+            sock.connect(sockaddr, timeoutMs);
+            sock.close();
+
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -136,18 +162,25 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 counterForecast -= 3;
-                drawForecast();
+                try {
+                    updateWeatherAndCurrency();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 backwardButton.setEnabled(counterForecast > 3);
                 forwardButton.setEnabled(true);
                 forecastTimeTextView.setText(String.format(forecastTime, counterForecast));
             }
         });
-
         forwardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 counterForecast += 3;
-                drawForecast();
+                try {
+                    updateWeatherAndCurrency();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 forwardButton.setEnabled(counterForecast < 24);
                 backwardButton.setEnabled(true);
                 forecastTimeTextView.setText(String.format(forecastTime, counterForecast));
@@ -160,36 +193,11 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(battery_receiver, filter);
     }
 
-    private final BroadcastReceiver battery_receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            boolean isPresent = intent.getBooleanExtra("present", false);
-            int plugged = intent.getIntExtra("plugged", -1);
-            int scale = intent.getIntExtra("scale", -1);
-            int rawlevel = intent.getIntExtra("level", -1);
-            int level = 0;
-            if (isPresent) {
-                if (rawlevel >= 0 && scale > 0) {
-                    level = (rawlevel * 100) / scale;
-                }
-                if (plugged == BatteryManager.BATTERY_PLUGGED_AC || plugged == BatteryManager.BATTERY_PLUGGED_USB) {
-                    chargingImageView.setImageResource(R.drawable.battery_charging);
-                    batteryLevelTextView.setTextColor(greenColor);
-                } else {
-                    chargingImageView.setImageResource(R.drawable.battery_alert);
-                    batteryLevelTextView.setTextColor(warmColor);
-                }
-                String batteryLevelText = level + "%";
-                batteryLevelTextView.setText(batteryLevelText);
-            }
-
-        }
-    };
     private void drawForecast() {
         DownloadForecastJSONTask downloadForecastJSONTask = new DownloadForecastJSONTask();
         downloadForecastJSONTask.execute(forecastUrl);
-
     }
+
     private ImageView mapImage(ImageView imageViewToMap, String imageCode) {
         switch (imageCode) {
             case "01n":
@@ -237,17 +245,20 @@ public class MainActivity extends AppCompatActivity {
         }
         return imageViewToMap;
     }
+
     private void updateWeatherAndCurrency() throws IOException {
         counterTime = 0;
-        DownloadWeatherJSONTask downloadWeatherJSONTask = new DownloadWeatherJSONTask();
-        downloadWeatherJSONTask.execute(weatherUrl);
-        drawForecast();
         final Handler currencyHandler = new Handler();
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     currencyInfo = CurrencyParser.findOutCourse();
+                    if (isOnline()) {
+                        DownloadWeatherJSONTask downloadWeatherJSONTask = new DownloadWeatherJSONTask();
+                        downloadWeatherJSONTask.execute(weatherUrl);
+                        drawForecast();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -260,6 +271,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
     private void timeUpdate() {
         final Handler timeHandler = new Handler();
         new Thread(new Runnable() {
@@ -281,7 +293,6 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             dayOfMonthString = String.valueOf(dayOfMonth);
                         }
-
                         month = calendar.get(Calendar.MONTH);
                         String monthString = "";
                         switch (month) {
@@ -325,7 +336,6 @@ public class MainActivity extends AppCompatActivity {
                         String dateText = dayOfMonthString + "-" + monthString
                                 + "-" + calendar.get(Calendar.YEAR);
                         dateTextVew.setText(dateText);
-
                         weekDay = calendar.get(Calendar.DAY_OF_WEEK);
                         String weekDayString = "";
                         switch (weekDay) {
@@ -369,7 +379,7 @@ public class MainActivity extends AppCompatActivity {
                         String timeText = hoursString + " : " + minutesString;
                         timeTextVew.setText(timeText);
                         counterTime++;
-                        if (counterTime == 1800) {
+                        if (counterTime == 600) {
                             try {
                                 updateWeatherAndCurrency();
                             } catch (IOException e) {
@@ -382,6 +392,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
     private class DownloadWeatherJSONTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... strings) {
@@ -389,13 +400,13 @@ public class MainActivity extends AppCompatActivity {
             HttpURLConnection urlConnection = null;
             StringBuilder result = new StringBuilder();
             try {
-                url = new  URL(strings[0]);
+                url = new URL(strings[0]);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream inputStream = urlConnection.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader reader = new BufferedReader(inputStreamReader);
                 String line = reader.readLine();
-                while (line != null){
+                while (line != null) {
                     result.append(line);
                     line = reader.readLine();
                 }
@@ -405,16 +416,16 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                if (urlConnection != null){
+                if (urlConnection != null) {
                     urlConnection.disconnect();
                 }
             }
             return null;
         }
+
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-
             try {
                 JSONObject jsonObject = new JSONObject(s);
                 JSONArray weather = jsonObject.getJSONArray("weather");
@@ -423,13 +434,13 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject main = jsonObject.getJSONObject("main");
                 int tempRounded = (int) Math.round(Double.valueOf(main.getString("temp")));
                 String currentTemperature = "";
-                if (tempRounded > 0){
+                if (tempRounded > 0) {
                     currentTemperature = "+%d";
                 }
-                if (tempRounded > 25){
+                if (tempRounded > 25) {
                     weatherTempTextView.setTextColor(warmColor);
                     celsTextView.setTextColor(warmColor);
-                }else {
+                } else {
                     weatherTempTextView.setTextColor(coldColor);
                     celsTextView.setTextColor(coldColor);
                 }
@@ -440,6 +451,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     private class DownloadForecastJSONTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... strings) {
@@ -447,15 +459,17 @@ public class MainActivity extends AppCompatActivity {
             HttpURLConnection urlConnection = null;
             StringBuilder result = new StringBuilder();
             try {
-                url = new  URL(strings[0]);
+                url = new URL(strings[0]);
                 urlConnection = (HttpURLConnection) url.openConnection();
-                InputStream inputStream = urlConnection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-                String line =reader.readLine();
-                while (line != null){
-                    result.append(line);
-                    line = reader.readLine();
+                if (urlConnection != null) {
+                    InputStream inputStream = urlConnection.getInputStream();
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                    BufferedReader reader = new BufferedReader(inputStreamReader);
+                    String line = reader.readLine();
+                    while (line != null) {
+                        result.append(line);
+                        line = reader.readLine();
+                    }
                 }
                 return result.toString();
             } catch (MalformedURLException e) {
@@ -463,93 +477,102 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                if (urlConnection != null){
+                if (urlConnection != null) {
                     urlConnection.disconnect();
                 }
             }
             return null;
         }
-
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-
             try {
                 JSONObject jsonObject = new JSONObject(s);
-                JSONArray list = jsonObject.getJSONArray("list");
-                for (int a = 0; a <= 16; a++){
-                    JSONObject forecastItem = list.getJSONObject(a);
-                    JSONArray weather = forecastItem.getJSONArray("weather");
-                    JSONObject condition = weather.getJSONObject(0);
-                    String iconCode = condition.getString("icon");
-                    JSONObject main = forecastItem.getJSONObject("main");
-                    int tempRounded = (int) Math.round(Double.parseDouble(main.getString("temp")));
-                    String date = forecastItem.getString("dt_txt");
-                    int day = Integer.parseInt(date.substring(8, 10));
-                    int hour = Integer.parseInt(date.substring(11,13));
-                    ForecastHour forecastHour = new ForecastHour(day, hour, tempRounded, iconCode);
-                    forecastsList.add(forecastHour);
-                }
-                Calendar calendar = Calendar.getInstance();
-                int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-                hours = calendar.get(Calendar.HOUR_OF_DAY);
-                int dayOfMonthStamp = 0;
-                int timeStamp = 0;
-                if (hours + counterForecast < 6 && hours + counterForecast >= 3){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 0;
-                }else if (hours + counterForecast < 9 && hours + counterForecast >= 6){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 3;
-                }else if (hours + counterForecast < 12 && hours + counterForecast >= 9){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 6;
-                }else if (hours + counterForecast < 15 && hours + counterForecast >= 12){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 9;
-                }else if (hours + counterForecast < 18 && hours + counterForecast >= 15){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 12;
-                }else if (hours + counterForecast < 21 && hours + counterForecast >= 18){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 15;
-                }else if (hours + counterForecast < 24 && hours + counterForecast >= 21){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 18;
-                }else if (hours + counterForecast < 27 && hours + counterForecast >= 24){
-                    dayOfMonthStamp = dayOfMonth;
-                    timeStamp = 21;
-                }else if (hours + counterForecast < 30 && hours + counterForecast >= 27){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 0;
-                }else if (hours + counterForecast < 33 && hours + counterForecast >= 30){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 3;
-                }else if (hours + counterForecast < 36 && hours + counterForecast >= 33){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 6;
-                }else if (hours + counterForecast < 39 && hours + counterForecast >= 36){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 9;
-                }else if (hours + counterForecast < 42 && hours + counterForecast >= 39){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 12;
-                }else if (hours + counterForecast < 45 && hours + counterForecast >= 42){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 15;
-                }else if (hours + counterForecast < 48 && hours + counterForecast >= 45){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 18;
-                }else if (hours + counterForecast >= 48){
-                    dayOfMonthStamp = dayOfMonth + 1;
-                    timeStamp = 21;
-                }
-                for (ForecastHour forecastHour : forecastsList){
-                    if (forecastHour.getDate() == dayOfMonthStamp && forecastHour.getTime() == timeStamp){
-                        mapImage(forecastImageView, forecastHour.getIconCode());
-                        forecastTempTextView.setText(String.valueOf(forecastHour.getTemperature()));
-//                        String test = "date:%d, time%d , temp:%d, code %s";
-//                        Log.i("myValue", String.format(test,forecastHour.getDate(), forecastHour.getTime(),forecastHour.getTemperature(), forecastHour.getIconCode()));
+                if (jsonObject != null) {
+                    JSONArray list = jsonObject.getJSONArray("list");
+                    for (int a = 0; a <= 16; a++) {
+                        JSONObject forecastItem = list.getJSONObject(a);
+                        JSONArray weather = forecastItem.getJSONArray("weather");
+                        JSONObject condition = weather.getJSONObject(0);
+                        String iconCode = condition.getString("icon");
+                        JSONObject main = forecastItem.getJSONObject("main");
+                        int tempRounded = (int) Math.round(Double.parseDouble(main.getString("temp")));
+                        String date = forecastItem.getString("dt_txt");
+                        int day = Integer.parseInt(date.substring(8, 10));
+                        int hour = Integer.parseInt(date.substring(11, 13));
+                        ForecastHour forecastHour = new ForecastHour(day, hour, tempRounded, iconCode);
+                        forecastsList.add(forecastHour);
+                    }
+                    Calendar calendar = Calendar.getInstance();
+                    int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+                    hours = calendar.get(Calendar.HOUR_OF_DAY);
+                    int dayOfMonthStamp = 0;
+                    int timeStamp = 0;
+                    if (hours + counterForecast < 6 && hours + counterForecast >= 3) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 0;
+                    } else if (hours + counterForecast < 9 && hours + counterForecast >= 6) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 3;
+                    } else if (hours + counterForecast < 12 && hours + counterForecast >= 9) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 6;
+                    } else if (hours + counterForecast < 15 && hours + counterForecast >= 12) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 9;
+                    } else if (hours + counterForecast < 18 && hours + counterForecast >= 15) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 12;
+                    } else if (hours + counterForecast < 21 && hours + counterForecast >= 18) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 15;
+                    } else if (hours + counterForecast < 24 && hours + counterForecast >= 21) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 18;
+                    } else if (hours + counterForecast < 27 && hours + counterForecast >= 24) {
+                        dayOfMonthStamp = dayOfMonth;
+                        timeStamp = 21;
+                    } else if (hours + counterForecast < 30 && hours + counterForecast >= 27) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 0;
+                    } else if (hours + counterForecast < 33 && hours + counterForecast >= 30) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 3;
+                    } else if (hours + counterForecast < 36 && hours + counterForecast >= 33) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 6;
+                    } else if (hours + counterForecast < 39 && hours + counterForecast >= 36) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 9;
+                    } else if (hours + counterForecast < 42 && hours + counterForecast >= 39) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 12;
+                    } else if (hours + counterForecast < 45 && hours + counterForecast >= 42) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 15;
+                    } else if (hours + counterForecast < 48 && hours + counterForecast >= 45) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 18;
+                    } else if (hours + counterForecast >= 48) {
+                        dayOfMonthStamp = dayOfMonth + 1;
+                        timeStamp = 21;
+                    }
+                    for (ForecastHour forecastHour : forecastsList) {
+                        if (forecastHour.getDate() == dayOfMonthStamp && forecastHour.getTime() == timeStamp) {
+                            mapImage(forecastImageView, forecastHour.getIconCode());
+                            String forecastTemperature = "";
+                            if (forecastHour.getTemperature() > 0) {
+                                forecastTemperature = "+%d";
+                            }
+                            forecastTempTextView.setText(String.format(forecastTemperature, forecastHour.getTemperature()));
+                            if (forecastHour.getTemperature() > 25) {
+                                forecastTempTextView.setTextColor(warmColor);
+                                cels2TextView.setTextColor(warmColor);
+                            } else {
+                                forecastTempTextView.setTextColor(coldColor);
+                                cels2TextView.setTextColor(coldColor);
+                            }
+                        }
                     }
                 }
             } catch (JSONException e) {
