@@ -26,14 +26,9 @@ public static String findOutCourse() throws  IOException {
         String uncutValue = "";
         Element element = null;
         try {
-
-                        Document page = getPage();
-//                Log.i("page:", page.text());
-
-                if (page != null) {
+                Document page = getPage();
+                        if (page != null) {
                         element = page.select("div[class=tabs-a]").first();
-//                       Log.i("element:", element.text());
-
                 }
                 if (element != null){
                         uncutValue = element.text();

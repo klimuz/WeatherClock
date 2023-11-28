@@ -10,7 +10,6 @@ import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -36,19 +35,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
-    public static String forecastIconCode = "";
-    public static ArrayList<String> currentWeather = new ArrayList<>();
     public static int warmColor;
     public static int coldColor;
     public static int greenColor;
-    private static String iconCode = "";
     private final String weatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=Tashkent&appid=ccfc57acc1e76e2bb422580207a1a1ed&units=metric";
-    private final String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q=Tashkent&appid=ccfc57acc1e76e2bb422580207a1a1ed&units=metric";
     private TextView dateTextVew;
     private TextView weekDayTextVew;
     private TextView timeTextVew;
     private TextView weatherTempTextView;
-    private Button updateButton;
     private ImageView weatherImageView;
     private ImageView forecastImageView;
     private TextView forecastTempTextView;
@@ -91,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private int counterTime;
     private int counterForecast = 3;
     private TextView currencyTextView;
-    private ArrayList<ForecastHour> forecastsList = new ArrayList<>();
+    private final ArrayList<ForecastHour> forecastsList = new ArrayList<>();
     private String currencyInfo = "";
 
     public boolean isOnline() {
@@ -99,17 +93,14 @@ public class MainActivity extends AppCompatActivity {
             int timeoutMs = 1500;
             Socket sock = new Socket();
             SocketAddress sockaddr = new InetSocketAddress("8.8.8.8", 53);
-
             sock.connect(sockaddr, timeoutMs);
             sock.close();
-
             return true;
         } catch (IOException e) {
             return false;
         }
     }
-
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "DefaultLocale"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         backwardButton = findViewById(R.id.backwardButton);
         forwardButton = findViewById(R.id.forwardButton);
         forecastTimeTextView = findViewById(R.id.forecastTextView);
-        updateButton = findViewById(R.id.button);
+        Button updateButton = findViewById(R.id.button);
         celsTextView = findViewById(R.id.celsTextView);
         cels2TextView = findViewById(R.id.cels2TextView);
         batteryLevelTextView = findViewById(R.id.batteryLevelTextView);
@@ -145,46 +136,37 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         registerBatteryLevelReceiver();
-        updateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    updateWeatherAndCurrency();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+        updateButton.setOnClickListener(v -> {
+            try {
+                updateWeatherAndCurrency();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         });
         backwardButton.setEnabled(false);
-        String forecastTime = "In %d hours";
+        String forecastTime = getString(R.string.in_d_hours);
         forecastTimeTextView.setText(String.format(forecastTime, counterForecast));
-        backwardButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                counterForecast -= 3;
-                try {
-                    updateWeatherAndCurrency();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                backwardButton.setEnabled(counterForecast > 3);
-                forwardButton.setEnabled(true);
-                forecastTimeTextView.setText(String.format(forecastTime, counterForecast));
+        backwardButton.setOnClickListener(view -> {
+            counterForecast -= 3;
+            try {
+                updateWeatherAndCurrency();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+            backwardButton.setEnabled(counterForecast > 3);
+            forwardButton.setEnabled(true);
+            forecastTimeTextView.setText(String.format(forecastTime, counterForecast));
         });
-        forwardButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                counterForecast += 3;
-                try {
-                    updateWeatherAndCurrency();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                forwardButton.setEnabled(counterForecast < 24);
-                backwardButton.setEnabled(true);
-                forecastTimeTextView.setText(String.format(forecastTime, counterForecast));
+        forwardButton.setOnClickListener(view -> {
+            counterForecast += 3;
+            try {
+                updateWeatherAndCurrency();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+            forwardButton.setEnabled(counterForecast < 24);
+            backwardButton.setEnabled(true);
+            forecastTimeTextView.setText(String.format(forecastTime, counterForecast));
         });
     }
 
@@ -195,10 +177,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void drawForecast() {
         DownloadForecastJSONTask downloadForecastJSONTask = new DownloadForecastJSONTask();
+        String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q=Tashkent&appid=ccfc57acc1e76e2bb422580207a1a1ed&units=metric";
         downloadForecastJSONTask.execute(forecastUrl);
     }
 
-    private ImageView mapImage(ImageView imageViewToMap, String imageCode) {
+    private void mapImage(ImageView imageViewToMap, String imageCode) {
         switch (imageCode) {
             case "01n":
                 imageViewToMap.setImageResource(R.drawable.skc_n);
@@ -243,160 +226,145 @@ public class MainActivity extends AppCompatActivity {
             default:
                 imageViewToMap.setImageResource(R.drawable.unknown);
         }
-        return imageViewToMap;
     }
 
     private void updateWeatherAndCurrency() throws IOException {
         counterTime = 0;
         final Handler currencyHandler = new Handler();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    currencyInfo = CurrencyParser.findOutCourse();
-                    if (isOnline()) {
-                        DownloadWeatherJSONTask downloadWeatherJSONTask = new DownloadWeatherJSONTask();
-                        downloadWeatherJSONTask.execute(weatherUrl);
-                        drawForecast();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+        new Thread(() -> {
+            try {
+                currencyInfo = CurrencyParser.findOutCourse();
+                if (isOnline()) {
+                    DownloadWeatherJSONTask downloadWeatherJSONTask = new DownloadWeatherJSONTask();
+                    downloadWeatherJSONTask.execute(weatherUrl);
+                    drawForecast();
                 }
-                currencyHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        currencyTextView.setText(currencyInfo);
-                    }
-                });
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            currencyHandler.post(() -> currencyTextView.setText(currencyInfo));
         }).start();
     }
-
     private void timeUpdate() {
         final Handler timeHandler = new Handler();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                timeHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Calendar calendar = Calendar.getInstance();
-                        int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-                        String dayOfMonthString = "";
-                        if (dayOfMonth < 10) {
-                            dayOfMonthString = 0 + String.valueOf(dayOfMonth);
-                        } else {
-                            dayOfMonthString = String.valueOf(dayOfMonth);
-                        }
-                        month = calendar.get(Calendar.MONTH);
-                        String monthString = "";
-                        switch (month) {
-                            case 0:
-                                monthString = "Jan";
-                                break;
-                            case 1:
-                                monthString = "Feb";
-                                break;
-                            case 2:
-                                monthString = "Mar";
-                                break;
-                            case 3:
-                                monthString = "Apr";
-                                break;
-                            case 4:
-                                monthString = "May";
-                                break;
-                            case 5:
-                                monthString = "Jun";
-                                break;
-                            case 6:
-                                monthString = "Jul";
-                                break;
-                            case 7:
-                                monthString = "Aug";
-                                break;
-                            case 8:
-                                monthString = "Sep";
-                                break;
-                            case 9:
-                                monthString = "Oct";
-                                break;
-                            case 10:
-                                monthString = "Nov";
-                                break;
-                            case 11:
-                                monthString = "Dec";
-                                break;
-                        }
-                        String dateText = dayOfMonthString + "-" + monthString
-                                + "-" + calendar.get(Calendar.YEAR);
-                        dateTextVew.setText(dateText);
-                        weekDay = calendar.get(Calendar.DAY_OF_WEEK);
-                        String weekDayString = "";
-                        switch (weekDay) {
-                            case 1:
-                                weekDayString = "Sunday";
-                                break;
-                            case 2:
-                                weekDayString = "Monday";
-                                break;
-                            case 3:
-                                weekDayString = "Tuesday";
-                                break;
-                            case 4:
-                                weekDayString = "Wednesday";
-                                break;
-                            case 5:
-                                weekDayString = "Thursday";
-                                break;
-                            case 6:
-                                weekDayString = "Friday";
-                                break;
-                            case 7:
-                                weekDayString = "Saturday";
-                                break;
-                        }
-                        weekDayTextVew.setText(weekDayString);
-                        hours = calendar.get(Calendar.HOUR_OF_DAY);
-                        String hoursString = "";
-                        if (hours < 10) {
-                            hoursString = 0 + String.valueOf(hours);
-                        } else {
-                            hoursString = String.valueOf(hours);
-                        }
-                        minutes = calendar.get(Calendar.MINUTE);
-                        String minutesString = "";
-                        if (minutes < 10) {
-                            minutesString = 0 + String.valueOf(minutes);
-                        } else {
-                            minutesString = String.valueOf(minutes);
-                        }
-                        String timeText = hoursString + " : " + minutesString;
-                        timeTextVew.setText(timeText);
-                        counterTime++;
-                        if (counterTime == 600) {
-                            try {
-                                updateWeatherAndCurrency();
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        timeUpdate();
-                    }
-                });
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            timeHandler.post(() -> {
+                Calendar calendar = Calendar.getInstance();
+                int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+                String dayOfMonthString ;
+                if (dayOfMonth < 10) {
+                    dayOfMonthString = 0 + String.valueOf(dayOfMonth);
+                } else {
+                    dayOfMonthString = String.valueOf(dayOfMonth);
+                }
+                month = calendar.get(Calendar.MONTH);
+                String monthString = "";
+                switch (month) {
+                    case 0:
+                        monthString = getString(R.string.january);
+                        break;
+                    case 1:
+                        monthString = getString(R.string.february);
+                        break;
+                    case 2:
+                        monthString = getString(R.string.march);
+                        break;
+                    case 3:
+                        monthString = getString(R.string.april);
+                        break;
+                    case 4:
+                        monthString = getString(R.string.may);
+                        break;
+                    case 5:
+                        monthString = getString(R.string.jun);
+                        break;
+                    case 6:
+                        monthString = getString(R.string.july);
+                        break;
+                    case 7:
+                        monthString = getString(R.string.august);
+                        break;
+                    case 8:
+                        monthString = getString(R.string.september);
+                        break;
+                    case 9:
+                        monthString = getString(R.string.october);
+                        break;
+                    case 10:
+                        monthString = getString(R.string.november);
+                        break;
+                    case 11:
+                        monthString = getString(R.string.december);
+                        break;
+                }
+                String dateText = dayOfMonthString + "-" + monthString
+                        + "-" + calendar.get(Calendar.YEAR);
+                dateTextVew.setText(dateText);
+                weekDay = calendar.get(Calendar.DAY_OF_WEEK);
+                String weekDayString = "";
+                switch (weekDay) {
+                    case 1:
+                        weekDayString = getString(R.string.sunday);
+                        break;
+                    case 2:
+                        weekDayString = getString(R.string.monday);
+                        break;
+                    case 3:
+                        weekDayString = getString(R.string.tuesday);
+                        break;
+                    case 4:
+                        weekDayString = getString(R.string.wednesday);
+                        break;
+                    case 5:
+                        weekDayString = getString(R.string.thursday);
+                        break;
+                    case 6:
+                        weekDayString = getString(R.string.friday);
+                        break;
+                    case 7:
+                        weekDayString = getString(R.string.saturday);
+                        break;
+                }
+                weekDayTextVew.setText(weekDayString);
+                hours = calendar.get(Calendar.HOUR_OF_DAY);
+                String hoursString;
+                if (hours < 10) {
+                    hoursString = 0 + String.valueOf(hours);
+                } else {
+                    hoursString = String.valueOf(hours);
+                }
+                minutes = calendar.get(Calendar.MINUTE);
+                String minutesString;
+                if (minutes < 10) {
+                    minutesString = 0 + String.valueOf(minutes);
+                } else {
+                    minutesString = String.valueOf(minutes);
+                }
+                String timeText = hoursString + " : " + minutesString;
+                timeTextVew.setText(timeText);
+                counterTime++;
+                if (counterTime == 600) {
+                    try {
+                        updateWeatherAndCurrency();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                timeUpdate();
+            });
         }).start();
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class DownloadWeatherJSONTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... strings) {
-            URL url = null;
+            URL url;
             HttpURLConnection urlConnection = null;
             StringBuilder result = new StringBuilder();
             try {
@@ -422,7 +390,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
@@ -432,7 +399,7 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject list = weather.getJSONObject(0);
                 String icon = list.getString("icon");
                 JSONObject main = jsonObject.getJSONObject("main");
-                int tempRounded = (int) Math.round(Double.valueOf(main.getString("temp")));
+                int tempRounded = (int) Math.round(Double.parseDouble(main.getString("temp")));
                 String currentTemperature = "";
                 if (tempRounded > 0) {
                     currentTemperature = "+%d";
@@ -451,11 +418,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
+    @SuppressLint("StaticFieldLeak")
     private class DownloadForecastJSONTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... strings) {
-            URL url = null;
+            URL url;
             HttpURLConnection urlConnection = null;
             StringBuilder result = new StringBuilder();
             try {
@@ -488,90 +455,86 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(s);
             try {
                 JSONObject jsonObject = new JSONObject(s);
-                if (jsonObject != null) {
-                    JSONArray list = jsonObject.getJSONArray("list");
-                    for (int a = 0; a <= 16; a++) {
-                        JSONObject forecastItem = list.getJSONObject(a);
-                        JSONArray weather = forecastItem.getJSONArray("weather");
-                        JSONObject condition = weather.getJSONObject(0);
-                        String iconCode = condition.getString("icon");
-                        JSONObject main = forecastItem.getJSONObject("main");
-                        int tempRounded = (int) Math.round(Double.parseDouble(main.getString("temp")));
-                        String date = forecastItem.getString("dt_txt");
-                        int day = Integer.parseInt(date.substring(8, 10));
-                        int hour = Integer.parseInt(date.substring(11, 13));
-                        ForecastHour forecastHour = new ForecastHour(day, hour, tempRounded, iconCode);
-                        forecastsList.add(forecastHour);
-                    }
-                    Calendar calendar = Calendar.getInstance();
-                    int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-                    hours = calendar.get(Calendar.HOUR_OF_DAY);
-                    int dayOfMonthStamp = 0;
-                    int timeStamp = 0;
-                    if (hours + counterForecast < 6 && hours + counterForecast >= 3) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 0;
-                    } else if (hours + counterForecast < 9 && hours + counterForecast >= 6) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 3;
-                    } else if (hours + counterForecast < 12 && hours + counterForecast >= 9) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 6;
-                    } else if (hours + counterForecast < 15 && hours + counterForecast >= 12) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 9;
-                    } else if (hours + counterForecast < 18 && hours + counterForecast >= 15) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 12;
-                    } else if (hours + counterForecast < 21 && hours + counterForecast >= 18) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 15;
-                    } else if (hours + counterForecast < 24 && hours + counterForecast >= 21) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 18;
-                    } else if (hours + counterForecast < 27 && hours + counterForecast >= 24) {
-                        dayOfMonthStamp = dayOfMonth;
-                        timeStamp = 21;
-                    } else if (hours + counterForecast < 30 && hours + counterForecast >= 27) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 0;
-                    } else if (hours + counterForecast < 33 && hours + counterForecast >= 30) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 3;
-                    } else if (hours + counterForecast < 36 && hours + counterForecast >= 33) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 6;
-                    } else if (hours + counterForecast < 39 && hours + counterForecast >= 36) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 9;
-                    } else if (hours + counterForecast < 42 && hours + counterForecast >= 39) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 12;
-                    } else if (hours + counterForecast < 45 && hours + counterForecast >= 42) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 15;
-                    } else if (hours + counterForecast < 48 && hours + counterForecast >= 45) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 18;
-                    } else if (hours + counterForecast >= 48) {
-                        dayOfMonthStamp = dayOfMonth + 1;
-                        timeStamp = 21;
-                    }
-                    for (ForecastHour forecastHour : forecastsList) {
-                        if (forecastHour.getDate() == dayOfMonthStamp && forecastHour.getTime() == timeStamp) {
-                            mapImage(forecastImageView, forecastHour.getIconCode());
-                            String forecastTemperature = "";
-                            if (forecastHour.getTemperature() > 0) {
-                                forecastTemperature = "+%d";
-                            }
-                            forecastTempTextView.setText(String.format(forecastTemperature, forecastHour.getTemperature()));
-                            if (forecastHour.getTemperature() > 25) {
-                                forecastTempTextView.setTextColor(warmColor);
-                                cels2TextView.setTextColor(warmColor);
-                            } else {
-                                forecastTempTextView.setTextColor(coldColor);
-                                cels2TextView.setTextColor(coldColor);
-                            }
+                JSONArray list = jsonObject.getJSONArray("list");
+                for (int a = 0; a <= 16; a++) {
+                    JSONObject forecastItem = list.getJSONObject(a);
+                    JSONArray weather = forecastItem.getJSONArray("weather");
+                    JSONObject condition = weather.getJSONObject(0);
+                    String iconCode = condition.getString("icon");
+                    JSONObject main = forecastItem.getJSONObject("main");
+                    int tempRounded = (int) Math.round(Double.parseDouble(main.getString("temp")));
+                    String date = forecastItem.getString("dt_txt");
+                    int day = Integer.parseInt(date.substring(8, 10));
+                    int hour = Integer.parseInt(date.substring(11, 13));
+                    ForecastHour forecastHour = new ForecastHour(day, hour, tempRounded, iconCode);
+                    forecastsList.add(forecastHour);
+                }
+                Calendar calendar = Calendar.getInstance();
+                int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+                hours = calendar.get(Calendar.HOUR_OF_DAY);
+                int dayOfMonthStamp = 0;
+                int timeStamp = 0;
+                if (hours + counterForecast < 6 && hours + counterForecast >= 3) {
+                    dayOfMonthStamp = dayOfMonth;
+                } else if (hours + counterForecast < 9 && hours + counterForecast >= 6) {
+                    dayOfMonthStamp = dayOfMonth;
+                    timeStamp = 3;
+                } else if (hours + counterForecast < 12 && hours + counterForecast >= 9) {
+                    dayOfMonthStamp = dayOfMonth;
+                    timeStamp = 6;
+                } else if (hours + counterForecast < 15 && hours + counterForecast >= 12) {
+                    dayOfMonthStamp = dayOfMonth;
+                    timeStamp = 9;
+                } else if (hours + counterForecast < 18 && hours + counterForecast >= 15) {
+                    dayOfMonthStamp = dayOfMonth;
+                    timeStamp = 12;
+                } else if (hours + counterForecast < 21 && hours + counterForecast >= 18) {
+                    dayOfMonthStamp = dayOfMonth;
+                    timeStamp = 15;
+                } else if (hours + counterForecast < 24 && hours + counterForecast >= 21) {
+                    dayOfMonthStamp = dayOfMonth;
+                    timeStamp = 18;
+                } else if (hours + counterForecast < 27 && hours + counterForecast >= 24) {
+                    dayOfMonthStamp = dayOfMonth;
+                    timeStamp = 21;
+                } else if (hours + counterForecast < 30 && hours + counterForecast >= 27) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                } else if (hours + counterForecast < 33 && hours + counterForecast >= 30) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                    timeStamp = 3;
+                } else if (hours + counterForecast < 36 && hours + counterForecast >= 33) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                    timeStamp = 6;
+                } else if (hours + counterForecast < 39 && hours + counterForecast >= 36) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                    timeStamp = 9;
+                } else if (hours + counterForecast < 42 && hours + counterForecast >= 39) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                    timeStamp = 12;
+                } else if (hours + counterForecast < 45 && hours + counterForecast >= 42) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                    timeStamp = 15;
+                } else if (hours + counterForecast < 48 && hours + counterForecast >= 45) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                    timeStamp = 18;
+                } else if (hours + counterForecast >= 48) {
+                    dayOfMonthStamp = dayOfMonth + 1;
+                    timeStamp = 21;
+                }
+                for (ForecastHour forecastHour : forecastsList) {
+                    if (forecastHour.getDate() == dayOfMonthStamp && forecastHour.getTime() == timeStamp) {
+                        mapImage(forecastImageView, forecastHour.getIconCode());
+                        String forecastTemperature = "";
+                        if (forecastHour.getTemperature() > 0) {
+                            forecastTemperature = "+%d";
+                        }
+                        forecastTempTextView.setText(String.format(forecastTemperature, forecastHour.getTemperature()));
+                        if (forecastHour.getTemperature() > 25) {
+                            forecastTempTextView.setTextColor(warmColor);
+                            cels2TextView.setTextColor(warmColor);
+                        } else {
+                            forecastTempTextView.setTextColor(coldColor);
+                            cels2TextView.setTextColor(coldColor);
                         }
                     }
                 }

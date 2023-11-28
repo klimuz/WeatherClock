@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Настенные часы</string>
+    <string name="update">ОБНОВИТЬ</string>
+    <string name="now">Сейчас</string>
+    <string name="in_12_hours">Через %d ч</string>
+    <string name="fwd">ВПЕРЁД</string>
+    <string name="january">Янв</string>
+    <string name="february">Фев</string>
+    <string name="march">Мар</string>
+    <string name="april">Апр</string>
+    <string name="may">Май</string>
+    <string name="jun">Июн</string>
+    <string name="july">Июл</string>
+    <string name="august">Авг</string>
+    <string name="september">Сен</string>
+    <string name="october">Окт</string>
+    <string name="november">Ноя</string>
+    <string name="december">Дек</string>
+    <string name="sunday">Воскресенье</string>
+    <string name="monday">Понедельник</string>
+    <string name="tuesday">Вторник</string>
+    <string name="wednesday">Среда</string>
+    <string name="thursday">Четверг</string>
+    <string name="friday">Пятница</string>
+    <string name="saturday">Суббота</string>
+    <string name="bwd">НАЗАД</string>
+    <string name="in_d_hours">Через %d ч</string>
+</resources>

@@ -1,11 +1,30 @@
 <resources>
     <string name="app_name">Weather Clock</string>
-    <string name="celsium">°С</string>
-    <string name="weathertype">weatherType</string>
+    <string name="celsium" translatable="false">°С</string>
+    <string name="weathertype" translatable="false">weatherType</string>
     <string name="update">UPDATE</string>
-    <string name="time_text">00 : 00</string>
+    <string name="time_text" translatable="false">00 : 00</string>
     <string name="now">Now</string>
-    <string name="in_12_hours">In 12 hours</string>
     <string name="bwd">BWD</string>
     <string name="fwd">FWD</string>
+    <string name="january">Jan</string>
+    <string name="february">Feb</string>
+    <string name="march">Mar</string>
+    <string name="april">Apr</string>
+    <string name="may">May</string>
+    <string name="jun">Jun</string>
+    <string name="july">Jul</string>
+    <string name="august">Aug</string>
+    <string name="september">Sep</string>
+    <string name="october">Oct</string>
+    <string name="november">Nov</string>
+    <string name="december">Dec</string>
+    <string name="sunday">Sunday</string>
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="in_d_hours">In %d hours</string>
 </resources>
